@@ -1,6 +1,6 @@
 {
-  "name": "ngx-clerk",
-  "version": "0.3.0",
+  "name": "@alexmarrer/ngx-clerk",
+  "version": "0.3.1",
   "description": "Unofficial Clerk.com SDK for Angular",
   "keywords": [
     "clerk",
