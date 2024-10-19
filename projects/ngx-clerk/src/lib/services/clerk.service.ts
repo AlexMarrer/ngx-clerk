@@ -20,6 +20,7 @@ import {
 import { ReplaySubject, take } from 'rxjs';
 import { ClerkInitOptions } from '../utils/types';
 import { loadClerkJsScript } from '../utils/loadClerkJsScript';
+import { deDE, enUS } from '@clerk/localizations'; // Import der Lokalisierungen
 
 interface HeadlessBrowserClerk extends Clerk {
   load: (opts?: Without<ClerkOptions, 'isSatellite'>) => Promise<void>;
@@ -102,8 +103,7 @@ export class ClerkService {
 
       // Sprache aus localStorage holen und Lokalisierung anwenden
       const savedLocale = localStorage.getItem('language') || 'de';
-      const localization =
-        savedLocale === 'en' ? { locale: 'en-US' } : { locale: 'de-DE' };
+      const localization = savedLocale === 'en' ? enUS : deDE;
 
       // Lokalisierung anwenden
       this.updateLocalization(localization);
