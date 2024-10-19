@@ -1,4 +1,13 @@
-import { AfterViewInit, ChangeDetectionStrategy, Component, ElementRef, Input, OnDestroy, ViewChild, ViewEncapsulation } from '@angular/core';
+import {
+  AfterViewInit,
+  ChangeDetectionStrategy,
+  Component,
+  ElementRef,
+  Input,
+  OnDestroy,
+  ViewChild,
+  ViewEncapsulation,
+} from '@angular/core';
 import { ClerkService } from '../services/clerk.service';
 import { take } from 'rxjs';
 import { UserProfileProps } from '@clerk/types';
@@ -9,7 +18,7 @@ import { UserProfileProps } from '@clerk/types';
   imports: [],
   template: `<div #ref></div>`,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  encapsulation: ViewEncapsulation.None
+  encapsulation: ViewEncapsulation.None,
 })
 export class ClerkUserProfileComponent implements AfterViewInit, OnDestroy {
   @ViewChild('ref') ref: ElementRef | null = null;
@@ -19,7 +28,19 @@ export class ClerkUserProfileComponent implements AfterViewInit, OnDestroy {
 
   ngAfterViewInit() {
     this._clerk.clerk$.pipe(take(1)).subscribe((clerk) => {
-      clerk.mountUserProfile(this.ref?.nativeElement, this.props);
+      const savedLocale = localStorage.getItem('language') || 'de';
+
+      const localizedProps = {
+        ...this.props,
+        appearance: {
+          ...this.props?.appearance,
+          localization: {
+            locale: savedLocale,
+          },
+        },
+      };
+
+      clerk.mountUserProfile(this.ref?.nativeElement, localizedProps);
     });
   }
 
