@@ -28,19 +28,7 @@ export class ClerkUserProfileComponent implements AfterViewInit, OnDestroy {
 
   ngAfterViewInit() {
     this._clerk.clerk$.pipe(take(1)).subscribe((clerk) => {
-      const savedLocale = localStorage.getItem('language') || 'de';
-
-      const localizedProps = {
-        ...this.props,
-        appearance: {
-          ...this.props?.appearance,
-          localization: {
-            locale: savedLocale,
-          },
-        },
-      };
-
-      clerk.mountUserProfile(this.ref?.nativeElement, localizedProps);
+      clerk.mountUserProfile(this.ref?.nativeElement, this.props);
     });
   }
 

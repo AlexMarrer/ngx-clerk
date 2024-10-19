@@ -1,7 +1,22 @@
-import { Injectable, NgZone, Inject, PLATFORM_ID } from '@angular/core';
-import { isPlatformBrowser } from '@angular/common';
+import { Injectable, NgZone } from '@angular/core'; // Inject, PLATFORM_ID removed
+// import { isPlatformBrowser } from '@angular/common';
 import { Router } from '@angular/router';
-import { ActiveSessionResource, Clerk, ClerkOptions, ClientResource, CreateOrganizationProps, OrganizationProfileProps, OrganizationResource, SignInProps, SignInRedirectOptions, SignUpProps, SignUpRedirectOptions, UserProfileProps, UserResource, Without } from '@clerk/types';
+import {
+  ActiveSessionResource,
+  Clerk,
+  ClerkOptions,
+  ClientResource,
+  CreateOrganizationProps,
+  OrganizationProfileProps,
+  OrganizationResource,
+  SignInProps,
+  SignInRedirectOptions,
+  SignUpProps,
+  SignUpRedirectOptions,
+  UserProfileProps,
+  UserResource,
+  Without,
+} from '@clerk/types';
 import { ReplaySubject, take } from 'rxjs';
 import { ClerkInitOptions } from '../utils/types';
 import { loadClerkJsScript } from '../utils/loadClerkJsScript';
@@ -23,27 +38,35 @@ declare global {
 }
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class ClerkService {
-  public readonly clerk$: ReplaySubject<HeadlessBrowserClerk | BrowserClerk> = new ReplaySubject(1);
-  public readonly client$: ReplaySubject<ClientResource | undefined> = new ReplaySubject(1);
-  public readonly session$: ReplaySubject<ActiveSessionResource | undefined | null> = new ReplaySubject(1);
-  public readonly user$: ReplaySubject<UserResource | undefined | null> = new ReplaySubject(1);
-  public readonly organization$: ReplaySubject<OrganizationResource | undefined  | null> = new ReplaySubject(1);
+  public readonly clerk$: ReplaySubject<HeadlessBrowserClerk | BrowserClerk> =
+    new ReplaySubject(1);
+  public readonly client$: ReplaySubject<ClientResource | undefined> =
+    new ReplaySubject(1);
+  public readonly session$: ReplaySubject<
+    ActiveSessionResource | undefined | null
+  > = new ReplaySubject(1);
+  public readonly user$: ReplaySubject<UserResource | undefined | null> =
+    new ReplaySubject(1);
+  public readonly organization$: ReplaySubject<
+    OrganizationResource | undefined | null
+  > = new ReplaySubject(1);
 
   private _initialized: boolean = false;
 
   constructor(
-    @Inject(PLATFORM_ID) private platformId: Object,
+    // @Inject(PLATFORM_ID) private platformId: Object,
     private _router: Router,
-    private _ngZone: NgZone) {} 
+    private _ngZone: NgZone
+  ) {}
 
   public __init(options: ClerkInitOptions) {
-    if (!isPlatformBrowser(this.platformId)) {
-      // ClerkService can only be used in the browser
-      return;
-    }
+    // if (!isPlatformBrowser(this.platformId)) {
+    //   // ClerkService can only be used in the browser
+    //   return;
+    // }
     if (this._initialized) {
       console.warn('ClerkService already initialized');
       return;
@@ -51,22 +74,39 @@ export class ClerkService {
     this._initialized = true;
     loadClerkJsScript(options).then(async () => {
       await window.Clerk.load({
-        routerPush: (to: string) => this._ngZone.run(() => {
-          const url = new URL(to.replace('#/', ''), 'http://dummy.clerk');
-          const queryParams = Object.fromEntries((url.searchParams as any).entries());
-          return this._router.navigate([url.pathname], { queryParams });
-        }), 
-        routerReplace: (to: string) => this._ngZone.run(() => {
-          const url = new URL(to.replace('#/', ''), 'http://dummy.clerk');
-          const queryParams = Object.fromEntries((url.searchParams as any).entries());
-          return this._router.navigate([url.pathname], { queryParams, replaceUrl: true });
-        }),
-        ...options
+        routerPush: (to: string) =>
+          this._ngZone.run(() => {
+            const url = new URL(to.replace('#/', ''), 'http://dummy.clerk');
+            const queryParams = Object.fromEntries(
+              (url.searchParams as any).entries()
+            );
+            return this._router.navigate([url.pathname], { queryParams });
+          }),
+        routerReplace: (to: string) =>
+          this._ngZone.run(() => {
+            const url = new URL(to.replace('#/', ''), 'http://dummy.clerk');
+            const queryParams = Object.fromEntries(
+              (url.searchParams as any).entries()
+            );
+            return this._router.navigate([url.pathname], {
+              queryParams,
+              replaceUrl: true,
+            });
+          }),
+        ...options,
       });
       this.client$.next(window.Clerk.client);
       this.session$.next(window.Clerk.session);
       this.user$.next(window.Clerk.user);
       this.organization$.next(window.Clerk.organization);
+
+      // Sprache aus localStorage holen und Lokalisierung anwenden
+      const savedLocale = localStorage.getItem('language') || 'de';
+      const localization =
+        savedLocale === 'en' ? { locale: 'en-US' } : { locale: 'de-DE' };
+
+      // Lokalisierung anwenden
+      this.updateLocalization(localization);
 
       // emits all of them every time 1 thing changes
       window.Clerk.addListener((resources) => {
